@@ -1,0 +1,9 @@
+langgraph
+fastapi
+uvicorn
+httpx
+python-dotenv
+pydantic
+tenacity
+beautifulsoup4
+openai
