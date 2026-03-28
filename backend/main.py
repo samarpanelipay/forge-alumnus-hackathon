@@ -43,11 +43,15 @@ class StockVerdict(BaseModel):
     verdict: str
     confidence: float
     bull_case: str
+    bull_reasoning: str = ""
     bear_case: str
+    bear_reasoning: str = ""
     risk_summary: str
+    risk_reasoning: str = ""
     dissent: str
     source: str
-    debate_summary: list
+    debate_summary: list = []
+    debate_messages: list = []
 
 
 class AnalysisResponse(BaseModel):
@@ -73,6 +77,94 @@ async def root():
 async def health():
     """Health check endpoint."""
     return {"status": "healthy"}
+
+
+class BatchStockRequest(BaseModel):
+    tickers: list[str]
+
+
+class BatchAnalysisResponse(BaseModel):
+    success: bool
+    results: list[AnalysisResponse]
+    errors: list[str] = []
+
+
+@app.post("/analyze/batch", response_model=BatchAnalysisResponse)
+async def analyze_batch(request: BatchStockRequest):
+    """
+    Analyze multiple stock tickers in parallel using the multi-agent LangGraph workflow.
+    """
+    tickers = [t.upper().strip() for t in request.tickers if t.strip()]
+
+    if not tickers:
+        raise HTTPException(status_code=400, detail="At least one ticker is required")
+
+    logger.info(f"Starting batch analysis for {len(tickers)} tickers: {tickers}")
+
+    try:
+        import sys
+        import os
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+        from agents.nodes import graph
+        from agents.state import ArenaState
+
+        results = []
+        errors = []
+
+        # Run all analyses in parallel using asyncio
+        import asyncio
+
+        async def analyze_single(ticker: str):
+            try:
+                initial_state = ArenaState(ticker=ticker)
+                result = graph.invoke(initial_state)
+
+                error = result.error if hasattr(result, 'error') else result.get('error')
+                if error:
+                    return AnalysisResponse(success=False, error=error)
+
+                if hasattr(result, 'model_dump'):
+                    final_verdict = result.final_verdict
+                    bull_analysis = result.bull_analysis
+                    bear_analysis = result.bear_analysis
+                    risk_analysis = result.risk_analysis
+                else:
+                    final_verdict = result.get('final_verdict', {})
+                    bull_analysis = result.get('bull_analysis')
+                    bear_analysis = result.get('bear_analysis')
+                    risk_analysis = result.get('risk_analysis')
+
+                if not final_verdict:
+                    return AnalysisResponse(success=False, error="No verdict generated")
+
+                return AnalysisResponse(
+                    success=True,
+                    data=StockVerdict(**final_verdict),
+                    bull_analysis=bull_analysis.model_dump() if hasattr(bull_analysis, 'model_dump') else bull_analysis,
+                    bear_analysis=bear_analysis.model_dump() if hasattr(bear_analysis, 'model_dump') else bear_analysis,
+                    risk_analysis=risk_analysis.model_dump() if hasattr(risk_analysis, 'model_dump') else risk_analysis
+                )
+            except Exception as e:
+                logger.error(f"Error analyzing {ticker}: {str(e)}")
+                return AnalysisResponse(success=False, error=f"Analysis failed for {ticker}: {str(e)}")
+
+        # Run all analyses concurrently
+        results = await asyncio.gather(*[analyze_single(t) for t in tickers])
+
+        logger.info(f"Batch analysis complete: {sum(1 for r in results if r.success)}/{len(tickers)} successful")
+
+        return BatchAnalysisResponse(
+            success=True,
+            results=results,
+            errors=[r.error for r in results if not r.success and r.error]
+        )
+
+    except Exception as e:
+        logger.error(f"Unexpected batch error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return BatchAnalysisResponse(success=False, results=[], errors=[str(e)])
 
 
 @app.post("/analyze", response_model=AnalysisResponse)
