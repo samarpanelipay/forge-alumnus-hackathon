@@ -1,20 +1,49 @@
+import { useState } from 'react'
+
 interface AgentPanelProps {
   bull: {
     stance: string
     arguments: string[]
     confidence: number
+    reasoning: string
   } | null
   bear: {
     stance: string
     arguments: string[]
     confidence: number
+    reasoning: string
   } | null
   risk: {
     risk_level: string
     constraints_triggered: string[]
     override: boolean
     final_recommendation: string
+    reasoning: string
   } | null
+}
+
+function ReasoningSection({ reasoning, label }: { reasoning: string; label: string }) {
+  const [expanded, setExpanded] = useState(false)
+
+  if (!reasoning) return null
+
+  return (
+    <div style={reasoningStyles.container}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        style={reasoningStyles.toggle}
+      >
+        <span>🧠</span>
+        <span>{label} Reasoning</span>
+        <span style={reasoningStyles.arrow}>{expanded ? '▼' : '▶'}</span>
+      </button>
+      {expanded && (
+        <div style={reasoningStyles.content}>
+          <p style={reasoningStyles.text}>{reasoning}</p>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function AgentPanel({ bull, bear, risk }: AgentPanelProps) {
@@ -41,6 +70,7 @@ export default function AgentPanel({ bull, bear, risk }: AgentPanelProps) {
               <li key={i} style={styles.argument}>{arg}</li>
             ))}
           </ul>
+          <ReasoningSection reasoning={bull?.reasoning || ''} label="Bull" />
         </div>
 
         {/* Bear Agent */}
@@ -62,6 +92,7 @@ export default function AgentPanel({ bull, bear, risk }: AgentPanelProps) {
               <li key={i} style={styles.argument}>{arg}</li>
             ))}
           </ul>
+          <ReasoningSection reasoning={bear?.reasoning || ''} label="Bear" />
         </div>
 
         {/* Risk Officer */}
@@ -89,6 +120,7 @@ export default function AgentPanel({ bull, bear, risk }: AgentPanelProps) {
               ))}
             </div>
           )}
+          <ReasoningSection reasoning={risk?.reasoning || ''} label="Risk" />
         </div>
       </div>
     </div>
@@ -180,5 +212,46 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '8px',
     fontSize: '0.75rem',
     color: '#f59e0b',
+  },
+}
+
+const reasoningStyles: { [key: string]: React.CSSProperties } = {
+  container: {
+    marginTop: '12px',
+    borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+    paddingTop: '12px',
+  },
+  toggle: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    background: 'rgba(255, 255, 255, 0.05)',
+    border: 'none',
+    borderRadius: '8px',
+    padding: '8px 12px',
+    color: '#8892b0',
+    fontSize: '0.85rem',
+    cursor: 'pointer',
+    width: '100%',
+    textAlign: 'left',
+  },
+  arrow: {
+    marginLeft: 'auto',
+    fontSize: '0.75rem',
+  },
+  content: {
+    marginTop: '10px',
+    padding: '12px',
+    background: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: '8px',
+    maxHeight: '300px',
+    overflowY: 'auto',
+  },
+  text: {
+    color: '#c9d1d9',
+    fontSize: '0.85rem',
+    lineHeight: 1.6,
+    margin: 0,
+    whiteSpace: 'pre-wrap',
   },
 }

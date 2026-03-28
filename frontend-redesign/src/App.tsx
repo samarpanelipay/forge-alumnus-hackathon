@@ -67,14 +67,22 @@ function App() {
 
   return (
     <div style={styles.container}>
+      <div style={styles.gridOverlay} aria-hidden="true" />
+
       <header style={styles.header}>
-        <h1 style={styles.title}>
-          <span style={styles.titleIcon}>⚖️</span>
-          Stock Verdict Arena
-        </h1>
-        <p style={styles.subtitle}>
-          Multi-agent AI analysis with Bull, Bear & Risk Officer
-        </p>
+        <div style={styles.headerInner}>
+          <div style={styles.logoMark}>
+            <span style={styles.logoIcon}>⚖</span>
+          </div>
+          <div>
+            <h1 style={styles.title}>STOCK VERDICT ARENA</h1>
+            <p style={styles.subtitle}>Multi-agent AI analysis · Bull · Bear · Risk Officer</p>
+          </div>
+          <div style={styles.headerBadge}>
+            <span style={styles.liveDot} />
+            LIVE
+          </div>
+        </div>
       </header>
 
       <main style={styles.main}>
@@ -89,7 +97,8 @@ function App() {
 
         {error && (
           <div style={styles.error}>
-            <span>⚠️</span> {error}
+            <span style={styles.errorIcon}>!</span>
+            <span>{error}</span>
           </div>
         )}
 
@@ -112,7 +121,7 @@ function App() {
             {selectedResult ? (
               <>
                 <button onClick={handleBackToGrid} style={styles.backButton}>
-                  ← Back to Comparison
+                  ← BACK TO COMPARISON
                 </button>
                 <VerdictDisplay verdict={selectedResult.data!} />
                 <DebatePanel
@@ -144,7 +153,11 @@ function App() {
       </main>
 
       <footer style={styles.footer}>
-        <p>Powered by LangGraph • Featherless.ai • Bright Data</p>
+        <div style={styles.footerInner}>
+          <span style={styles.footerDivider}>◆</span>
+          <span>Powered by LangGraph · Featherless.ai · Bright Data</span>
+          <span style={styles.footerDivider}>◆</span>
+        </div>
       </footer>
     </div>
   )
@@ -155,38 +168,100 @@ const styles: { [key: string]: React.CSSProperties } = {
     minHeight: '100vh',
     display: 'flex',
     flexDirection: 'column',
+    background: '#080c10',
+    color: '#e2e8f0',
+    fontFamily: "'IBM Plex Mono', 'Courier New', monospace",
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  gridOverlay: {
+    position: 'fixed',
+    inset: 0,
+    backgroundImage: `
+      linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px)
+    `,
+    backgroundSize: '48px 48px',
+    pointerEvents: 'none',
+    zIndex: 0,
   },
   header: {
-    textAlign: 'center',
-    padding: '40px 20px 20px',
+    borderBottom: '1px solid rgba(16, 185, 129, 0.2)',
+    position: 'relative',
+    zIndex: 1,
+    background: 'rgba(8, 12, 16, 0.95)',
   },
-  title: {
-    fontSize: '2.5rem',
-    fontWeight: 700,
-    marginBottom: '8px',
+  headerInner: {
+    maxWidth: '960px',
+    margin: '0 auto',
+    padding: '20px 24px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '20px',
+  },
+  logoMark: {
+    width: '48px',
+    height: '48px',
+    border: '2px solid #10b981',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '12px',
+    flexShrink: 0,
+    background: 'rgba(16, 185, 129, 0.08)',
   },
-  titleIcon: {
-    fontSize: '2rem',
+  logoIcon: {
+    fontSize: '1.5rem',
+    color: '#10b981',
+    lineHeight: 1,
+  },
+  title: {
+    fontSize: '1.4rem',
+    fontWeight: 700,
+    letterSpacing: '0.15em',
+    color: '#f1f5f9',
+    margin: 0,
+    lineHeight: 1.2,
   },
   subtitle: {
-    color: '#8892b0',
-    fontSize: '1.1rem',
+    fontSize: '0.72rem',
+    color: '#4b6a5e',
+    margin: '4px 0 0',
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase' as const,
+  },
+  headerBadge: {
+    marginLeft: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: '0.7rem',
+    letterSpacing: '0.12em',
+    color: '#10b981',
+    border: '1px solid rgba(16, 185, 129, 0.3)',
+    padding: '4px 10px',
+    flexShrink: 0,
+  },
+  liveDot: {
+    width: '6px',
+    height: '6px',
+    borderRadius: '50%',
+    background: '#10b981',
+    display: 'inline-block',
+    boxShadow: '0 0 8px #10b981',
   },
   main: {
     flex: 1,
-    maxWidth: '1200px',
+    maxWidth: '1100px',
     width: '100%',
     margin: '0 auto',
-    padding: '20px',
+    padding: '32px 24px',
+    position: 'relative',
+    zIndex: 1,
   },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-    gap: '20px',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+    gap: '16px',
     marginBottom: '24px',
   },
   detailView: {
@@ -195,30 +270,58 @@ const styles: { [key: string]: React.CSSProperties } = {
   backButton: {
     padding: '10px 20px',
     marginBottom: '20px',
-    background: 'rgba(255, 255, 255, 0.1)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    borderRadius: '8px',
-    color: '#fff',
+    background: 'rgba(16, 185, 129, 0.1)',
+    border: '1px solid rgba(16, 185, 129, 0.3)',
+    borderRadius: '4px',
+    color: '#10b981',
     cursor: 'pointer',
-    fontSize: '0.95rem',
+    fontSize: '0.8rem',
+    fontFamily: "'IBM Plex Mono', 'Courier New', monospace",
+    letterSpacing: '0.05em',
     transition: 'background 0.2s',
   },
   error: {
-    background: 'rgba(255, 107, 107, 0.1)',
-    border: '1px solid #ff6b6b',
-    borderRadius: '12px',
-    padding: '16px 20px',
-    color: '#ff6b6b',
-    marginTop: '20px',
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
+    gap: '12px',
+    padding: '14px 18px',
+    background: 'rgba(239, 68, 68, 0.06)',
+    border: '1px solid rgba(239, 68, 68, 0.4)',
+    marginTop: '20px',
+    color: '#f87171',
+    fontSize: '0.9rem',
+  },
+  errorIcon: {
+    width: '22px',
+    height: '22px',
+    border: '1.5px solid #ef4444',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    fontSize: '0.85rem',
+    fontWeight: 700,
+    borderRadius: '2px',
   },
   footer: {
-    textAlign: 'center',
-    padding: '20px',
-    color: '#5a6785',
-    fontSize: '0.9rem',
+    borderTop: '1px solid rgba(16, 185, 129, 0.15)',
+    position: 'relative',
+    zIndex: 1,
+  },
+  footerInner: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '16px',
+    padding: '16px',
+    color: '#2d4a40',
+    fontSize: '0.75rem',
+    letterSpacing: '0.05em',
+  },
+  footerDivider: {
+    fontSize: '0.5rem',
+    color: '#10b981',
+    opacity: 0.4,
   },
 }
 
